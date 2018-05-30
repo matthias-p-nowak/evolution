@@ -48,8 +48,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.selection=2
 
     def appExit(self):
+        global app
         print('ok, done')
-        sys.exit(0)
+        app.closeAllWindows()
+        app.quit()
 
     def fullScreen(self):
         self.showFullScreen()
@@ -57,11 +59,43 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def keyPressEvent(self,e):
         print('key pressed')
 
+    def setController(self, evolution):
+        self.evolution=evolution
+        evolution.setPlaceHolders(self.pics)
+    
+    def closeEvent(self, event):
+        print('got a closing')
+        self.evolution.finish()
+        self.deleteLater()
+
+class Evolution():
+    """the controller over the development"""
+    
+    def __init__(self):
+        pass
+        
+    def setPlaceHolders(self, ph):
+        self.placeHolders=ph
+        
+    def finish(self):
+        print('should save data')
+        
+    def start(self):
+        print('starting evolution')
+        
+app = None
+
+def main():
+    print('running evolution')
+    global app
+    app=Qt.QApplication(sys.argv)
+    app.setApplicationName('Evolution')
+    window = MainWindow()
+    evolution=Evolution()
+    window.setController(evolution)
+    evolution.start()
+    sys.exit(app.exec())
 
 if __name__ == '__main__':
     """ standard convention """
-    print('running evolution')
-    app=Qt.QApplication([])
-    app.setApplicationName('Evolution')
-    window = MainWindow()
-    app.exec_()
+    main()
