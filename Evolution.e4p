@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE Project SYSTEM "Project-5.1.dtd">
 <!-- eric project file for project Evolution -->
-<!-- Saved: 2018-05-30, 13:10:50 -->
+<!-- Saved: 2018-05-30, 14:02:11 -->
 <!-- Copyright (C) 2018 Matthias P. Nowak, matth-no@online.no -->
 <Project version="5.1">
   <Language>en_US</Language>
@@ -14,11 +14,15 @@
   <Email>matth-no@online.no</Email>
   <Eol index="0"/>
   <Sources>
+    <Source>Flame.py</Source>
     <Source>MainWindow.py</Source>
-    <Source>MainWindow.ui</Source>
+    <Source>Petal.py</Source>
     <Source>__init__.py</Source>
     <Source>evolution.py</Source>
   </Sources>
+  <Forms>
+    <Form>MainWindow.ui</Form>
+  </Forms>
   <Others>
     <Other>.gitignore</Other>
     <Other>README.md</Other>
