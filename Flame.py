@@ -68,6 +68,7 @@ class Flame():
         The callback is called with the parent and self.
         Divergent flames are re-initialized with a random point in the center square.
         """
+        self.pixmap = None
         buckets=[[ [0]*3 for i in range(height)] for j in range(width)]
         x, y= random.random()-0.5,  random.random()-0.5
         outside=0
