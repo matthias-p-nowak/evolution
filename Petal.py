@@ -41,7 +41,7 @@ class Petal():
             p-=1
             print('changing coefficient %d' % (p))
             self.projCoeff[p]  += 0.1*(random.random()-0.5)
-            pprint(self.projCoeff)
+            pprint.pprint(self.projCoeff)
             
     def calculate(self, x, y):
         """calculates one jump"""

@@ -44,7 +44,7 @@ class Flame():
         """carries out one mutation"""
         probN=random.random()
         if probN < 0.001:
-            pet=Petal(random.randomint(0, 1e9))
+            pet=Petal(random.randint(0, 1e9))
             pet.mutate()
             self.petals.append(pet)
         else:
@@ -59,7 +59,7 @@ class Flame():
         for pet in self.petals:
             pet.prob*=probSum
             
-    def calculate(self, parent,  width,  height,  callback):
+    def calculate(self, width,  height):
         """
         carries out the Chaos Game with all petals - time consuming
         
@@ -103,7 +103,7 @@ class Flame():
                 d+=buckets[fx][fy][c]
             if d > self.MaxFill:
                 break
-        pprint(iteration)
+        pprint.pprint(iteration)
         maxd=0
         for i in range(width):
             for j in range(height):
@@ -118,5 +118,4 @@ class Flame():
                     buckets[i][j][c]=d
         self.buckets=buckets
         self.maxd=maxd
-        callback(parent, self)
     
