@@ -21,6 +21,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         super(MainWindow, self).__init__(*args, **kwargs)
         self.setupUi(self)
+        self.evolution=Evolution()
         self.pics = []
         for i in range(3):
             for j in range(3):
@@ -30,6 +31,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 ql.setText( '%d' % len(self.pics))
                 ql.setAlignment(QtCore.Qt.AlignBottom|QtCore.Qt.AlignLeft)
                 ql.setStyleSheet("color: yellow")
+        self.evolution.setPlaceHolders(self.pics)
         # make the checkable menu items appear as radio buttons
         ag=QtWidgets.QActionGroup(self)
         self.actionBreed.setActionGroup(ag)
@@ -43,10 +45,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.show()
 
     def selectBreed(self):
-        self.selection=1
+        self.evolution.selection=1
 
     def selectKill(self):
-        self.selection=2
+        self.evolution.selection=2
 
     def appExit(self):
         global app
@@ -57,6 +59,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def fullScreen(self):
         self.showFullScreen()
 
+    def resizeEvent(self, event):
+        print('got a resize')
+        self.evolution.clearPix()
+
     def event(self, event):
         if event.type()== QtCore.QEvent.User:
             print('got a user event')
@@ -66,10 +72,6 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         
     def keyPressEvent(self,e):
         print('key pressed')
-
-    def setController(self, evolution):
-        self.evolution=evolution
-        evolution.setPlaceHolders(self.pics)
     
     def closeEvent(self, event):
         print('got a closing')
@@ -103,7 +105,6 @@ class Evolution():
     def setPlaceHolders(self, ph):
         self.placeHolders=ph
         self.flames=[None for p in ph]
-        pass
         
     def finish(self):
         print('should save data')
@@ -128,14 +129,17 @@ class Evolution():
             flame = Flame()
             flame.mutate()
             self.population.append(flame)
+        print('starting calculations')
         self.inCalculation={}
-        while len(self.inCalculation)<9:
-            flame=random.choice(self.population)
-            self.inCalculation[flame]=1
         sz=self.placeHolders[0].size()
         w=sz.width()
         h=sz.height()
-        for flame in self.inCalculation.keys():
+        self.running={}
+        while len(self.running)<9:
+            flame=random.choice(self.population)
+            if flame in self.running:
+                continue
+            self.running[flame]=True
             t=EvoThread(flame, w, h, self)
             t.start()
             
@@ -177,6 +181,9 @@ class Evolution():
         pix.setPixmap(flame.pixmap)
         pix.update()
 
+    def clearPix(self):
+        for flames in self.population:
+            flames.pixmap = None
 
     def userEvent(self):
         print('process user event')
@@ -186,7 +193,7 @@ class Evolution():
                 print('have to update a label')
                 try:
                     flame=self.queue.get(False)
-                    self.inCalculation.pop(flame)
+                    self.running.pop(flame)
                     self.fillPlace(i, flame)
                 except:
                     print('no more flames to display')
@@ -202,9 +209,7 @@ def main():
     app=Qt.QApplication(sys.argv)
     app.setApplicationName('Evolution')
     window = MainWindow()
-    evolution=Evolution()
-    window.setController(evolution)
-    evolution.start('data')
+    window.evolution.start('data')
     sys.exit(app.exec())
 
 if __name__ == '__main__':
