@@ -21,17 +21,16 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         """
         super(MainWindow, self).__init__(*args, **kwargs)
         self.setupUi(self)
-        self.evolution=Evolution()
-        self.pics = []
+        self.evolution=Evolution(self)
+        self.pics = {}
         for i in range(3):
             for j in range(3):
                 ql= QtWidgets.QLabel(self.centralwidget)
-                self.pics.append(ql)
+                self.pics[ql] = None
                 self.gl.addWidget(ql,i,j,1,1)
                 ql.setText( '%d' % len(self.pics))
                 ql.setAlignment(QtCore.Qt.AlignBottom|QtCore.Qt.AlignLeft)
                 ql.setStyleSheet("color: yellow")
-        self.evolution.setPlaceHolders(self.pics)
         # make the checkable menu items appear as radio buttons
         ag=QtWidgets.QActionGroup(self)
         self.actionBreed.setActionGroup(ag)
@@ -77,7 +76,28 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         print('got a closing')
         self.evolution.finish()
         self.deleteLater()
-
+    def getPixSize(self):
+        w=0
+        h=0
+        i=0
+        for l,p in self.pics.items():
+            i +=1
+            sz=l.size()
+            w += sz.width()
+            h += sz.height()
+        return [math.floor(w/i), math.floor(h/i)]
+    
+    def fillWith(self, queue):
+        for l, flame in self.pics.items():
+            if flame != None:
+                continue
+            flame=queue.pop()
+            self.pics[l]=flame
+            if flame.pixmap == None:
+                self.evolution.createPixmap(flame)
+            l.setPixmap(flame.pixmap)
+            l.update()
+        
 class EvoThread(threading.Thread):
     """
     """
@@ -97,19 +117,17 @@ class Evolution():
     
     MaxPopulation = 16
     
-    def __init__(self):
+    def __init__(self, mw):
         self.queue=queue.Queue()
         self.immediate=True
         self.population=[]
+        self.mw=mw
         
-    def setPlaceHolders(self, ph):
-        self.placeHolders=ph
-        self.flames=[None for p in ph]
         
     def finish(self):
         print('should save data')
         
-    def start(self, dataDir):
+    def start(self, dataDir, w, h):
         print('starting evolution')
         self.immediate=True
         self.dataDir=dataDir
@@ -130,10 +148,6 @@ class Evolution():
             flame.mutate()
             self.population.append(flame)
         print('starting calculations')
-        self.inCalculation={}
-        sz=self.placeHolders[0].size()
-        w=sz.width()
-        h=sz.height()
         self.running={}
         while len(self.running)<9:
             flame=random.choice(self.population)
@@ -147,7 +161,7 @@ class Evolution():
         self.queue.put(flame)
         if self.immediate:
             qe=QtCore.QEvent(QtCore.QEvent.User)
-            app.postEvent(window, qe)
+            app.postEvent(self.mw, qe)
     
     def createPixmap(self, flame):
         buckets=flame.buckets
@@ -188,19 +202,23 @@ class Evolution():
     def userEvent(self):
         print('process user event')
         self.immediate=False
-        for i in range(len(self.flames)):
-            if self.flames[i] == None:
-                print('have to update a label')
-                try:
-                    flame=self.queue.get(False)
-                    self.running.pop(flame)
-                    self.fillPlace(i, flame)
-                except:
-                    print('no more flames to display')
-                    self.immediate=True
+        try:
+            self.mw.fillWith(self.running)
+        except:
+            self.immediate=True
+#        for i in range(len(self.flames)):
+#            if self.flames[i] == None:
+#                print('have to update a label')
+#                try:
+#                    flame=self.queue.get(False)
+#                    self.running.pop(flame)
+#                    self.fillPlace(i, flame)
+#                except:
+#                    print('no more flames to display')
+#                    self.immediate=True
         
-app = None
-window = None
+#app = None
+#window = None
 
 def main():
     print('running evolution')
@@ -209,7 +227,7 @@ def main():
     app=Qt.QApplication(sys.argv)
     app.setApplicationName('Evolution')
     window = MainWindow()
-    window.evolution.start('data')
+    window.evolution.start('data',  *window.getPixSize())
     sys.exit(app.exec())
 
 if __name__ == '__main__':
